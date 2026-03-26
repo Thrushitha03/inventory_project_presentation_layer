@@ -1,25 +1,62 @@
-import logo from './logo.svg';
-import './App.css';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import { InventoryProvider } from './context/InventoryContext.jsx';
+import { useAuth } from './hooks/useAuth';
 
-function App() {
+import LoginPage      from './pages/LoginPage.jsx';
+import DashboardPage  from './pages/DashboardPage.jsx';
+import ProductsPage   from './pages/ProductsPage.jsx';
+import AddProductPage from './pages/AddProductPage.jsx';
+import ReportsPage    from './pages/ReportsPage.jsx';
+import AddUserPage    from './pages/AddUserPage.jsx';
+
+import './styles/global.css';
+
+function Protected({ children, requiredRole }) {
+  const { isAuthenticated, hasRole } = useAuth();
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (requiredRole && !hasRole(requiredRole)) return <Navigate to="/dashboard" replace />;
+  return children;
+}
+
+function AppRoutes() {
+  const { isAuthenticated } = useAuth();
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Routes>
+      <Route path="/login" element={
+        isAuthenticated ? <Navigate to="/dashboard" replace /> : <LoginPage />
+      } />
+      <Route path="/dashboard" element={
+        <Protected><DashboardPage /></Protected>
+      } />
+      <Route path="/products" element={
+        <Protected><ProductsPage /></Protected>
+      } />
+      <Route path="/add-product" element={
+        <Protected requiredRole="MANAGER"><AddProductPage /></Protected>
+      } />
+      <Route path="/reports" element={
+        <Protected><ReportsPage /></Protected>
+      } />
+      <Route path="/add-user" element={
+        <Protected requiredRole="ADMIN"><AddUserPage /></Protected>
+      } />
+      <Route path="*" element={
+        <Navigate to={isAuthenticated ? '/dashboard' : '/login'} replace />
+      } />
+    </Routes>
   );
 }
 
-export default App;
+export default function App() {
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <InventoryProvider>
+          <AppRoutes />
+        </InventoryProvider>
+      </AuthProvider>
+    </BrowserRouter>
+  );
+}
