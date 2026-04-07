@@ -1,39 +1,43 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { useTheme } from '../context/ThemeContext';
 import { ValidationUtils } from '../utilities/ValidationUtils';
 import '../styles/login.css';
 
 export default function LoginPage() {
-  const navigate        = useNavigate();
+  const navigate = useNavigate();
   const { login, loading } = useAuth();
+  const { theme, toggle }  = useTheme();
 
   const [form,   setForm]   = useState({ username: '', password: '' });
   const [errors, setErrors] = useState({});
   const [apiErr, setApiErr] = useState('');
 
-  const set = (field) => (e) => setForm(f => ({ ...f, [field]: e.target.value }));
+  const set = (f) => (e) => setForm(p => ({ ...p, [f]: e.target.value }));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const errs = ValidationUtils.validateLogin(form);
     if (Object.keys(errs).length) { setErrors(errs); return; }
     setErrors({}); setApiErr('');
-
     const result = await login(form.username, form.password);
-    if (result.success) {
-      navigate('/dashboard');
-    } else {
-      setApiErr('Invalid username or password. Please try again.');
-    }
+    if (result.success) navigate('/dashboard');
+    else setApiErr('Invalid username or password. Please try again.');
   };
 
   return (
     <div className="login-root">
-      {/* Left branding panel */}
+
+      {/* Theme toggle */}
+      <button className="login-theme-toggle" onClick={toggle} title="Toggle theme">
+        {theme === 'dark' ? '☀' : '☾'}
+      </button>
+
+      {/* Left branding */}
       <div className="login-brand">
         <div className="login-brand-logo">
-          <span className="dot" />
+          <div className="login-brand-dot" />
           InvenTrack
         </div>
         <h1>
@@ -42,30 +46,34 @@ export default function LoginPage() {
         </h1>
         <p>
           Monitor stock levels, generate insightful reports, and keep your
-          supply chain running smoothly — all in one place.
+          supply chain running smoothly — all from one dashboard.
         </p>
         <div className="login-brand-stats">
-          <div className="login-stat">
-            <span className="login-stat-value">Real‑time</span>
-            <span className="login-stat-label">Stock Monitoring</span>
+          <div>
+            <div className="login-stat-value">Real‑time</div>
+            <div className="login-stat-label">Monitoring</div>
           </div>
-          <div className="login-stat">
-            <span className="login-stat-value">Auto</span>
-            <span className="login-stat-label">Low Stock Alerts</span>
+          <div>
+            <div className="login-stat-value">Auto</div>
+            <div className="login-stat-label">Alerts</div>
           </div>
-          <div className="login-stat">
-            <span className="login-stat-value">Full</span>
-            <span className="login-stat-label">Audit Reports</span>
+          <div>
+            <div className="login-stat-value">Full</div>
+            <div className="login-stat-label">Reports</div>
           </div>
         </div>
       </div>
 
-      {/* Right form panel */}
-      <div className="login-form-panel">
+      {/* Right form */}
+      <div className="login-form-panel" style={{ animation: 'fadeUp 0.5s ease both' }}>
         <h2>Welcome back</h2>
         <p className="sub">Sign in to your account to continue.</p>
 
-        {apiErr && <div className="login-error">{apiErr}</div>}
+        {apiErr && (
+          <div className="login-error">
+            <span>⚠</span> {apiErr}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} noValidate>
           <div className="form-group">
@@ -92,7 +100,7 @@ export default function LoginPage() {
           </div>
 
           <button type="submit" className="login-btn" disabled={loading}>
-            {loading ? 'Signing in…' : 'Sign In'}
+            {loading ? 'Signing in…' : 'Sign In →'}
           </button>
         </form>
       </div>

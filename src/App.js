@@ -1,6 +1,8 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { InventoryProvider } from './context/InventoryContext.jsx';
+import { ThemeProvider } from './context/ThemeContext';
+import { ToastProvider } from './context/ToastContext.jsx';
 import { useAuth } from './hooks/useAuth';
 
 import LoginPage      from './pages/LoginPage.jsx';
@@ -21,42 +23,33 @@ function Protected({ children, requiredRole }) {
 
 function AppRoutes() {
   const { isAuthenticated } = useAuth();
-
   return (
     <Routes>
       <Route path="/login" element={
         isAuthenticated ? <Navigate to="/dashboard" replace /> : <LoginPage />
       } />
-      <Route path="/dashboard" element={
-        <Protected><DashboardPage /></Protected>
-      } />
-      <Route path="/products" element={
-        <Protected><ProductsPage /></Protected>
-      } />
-      <Route path="/add-product" element={
-        <Protected requiredRole="MANAGER"><AddProductPage /></Protected>
-      } />
-      <Route path="/reports" element={
-        <Protected><ReportsPage /></Protected>
-      } />
-      <Route path="/add-user" element={
-        <Protected requiredRole="ADMIN"><AddUserPage /></Protected>
-      } />
-      <Route path="*" element={
-        <Navigate to={isAuthenticated ? '/dashboard' : '/login'} replace />
-      } />
+      <Route path="/dashboard"   element={<Protected><DashboardPage /></Protected>} />
+      <Route path="/products"    element={<Protected><ProductsPage /></Protected>} />
+      <Route path="/add-product" element={<Protected requiredRole="MANAGER"><AddProductPage /></Protected>} />
+      <Route path="/reports"     element={<Protected><ReportsPage /></Protected>} />
+      <Route path="/add-user"    element={<Protected requiredRole="ADMIN"><AddUserPage /></Protected>} />
+      <Route path="*"            element={<Navigate to={isAuthenticated ? '/dashboard' : '/login'} replace />} />
     </Routes>
   );
 }
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <InventoryProvider>
-          <AppRoutes />
-        </InventoryProvider>
-      </AuthProvider>
-    </BrowserRouter>
+    <ThemeProvider>
+      <ToastProvider>
+        <BrowserRouter>
+          <AuthProvider>
+            <InventoryProvider>
+              <AppRoutes />
+            </InventoryProvider>
+          </AuthProvider>
+        </BrowserRouter>
+      </ToastProvider>
+    </ThemeProvider>
   );
 }
