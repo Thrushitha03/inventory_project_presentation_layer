@@ -1,48 +1,39 @@
-import { useState, useEffect, useCallback } from 'react';
-import { api } from '../utilities/ApiUtils';
+import { useState } from 'react';
+import { useInventoryContext } from '../context/InventoryContext';
 
 export function useProducts() {
-  const [products, setProducts] = useState([]);
-  const [loading,  setLoading]  = useState(false);
-  const [error,    setError]    = useState(null);
+  const { products, loading, error, addProduct, updateProduct, deleteProduct, getLowStock } = useInventoryContext();
+  const [saving, setSaving] = useState(false);
 
-  const load = useCallback(async () => {
-    setLoading(true); setError(null);
-    try {
-      const data = await api.get('/products');
-      setProducts(data);
-    } catch (e) {
-      setError(e.message);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const refresh = () => {};
 
-  useEffect(() => { load(); }, [load]);
-
-  const addProduct = async (product) => {
-    const created = await api.post('/products', product);
-    setProducts(prev => [created, ...prev]);
+  const addProductHandler = async (product) => {
+    setSaving(true);
+    await new Promise(r => setTimeout(r, 500));
+    const created = addProduct(product);
+    setSaving(false);
     return created;
   };
 
   const editProduct = async (id, data) => {
-    const updated = await api.put(`/products/${id}`, data);
-    setProducts(prev => prev.map(p => p.id === id ? updated : p));
+    setSaving(true);
+    await new Promise(r => setTimeout(r, 500));
+    const updated = updateProduct(id, data);
+    setSaving(false);
     return updated;
   };
 
   const removeProduct = async (id) => {
-    await api.delete(`/products/${id}`);
-    setProducts(prev => prev.filter(p => p.id !== id));
+    await new Promise(r => setTimeout(r, 300));
+    deleteProduct(id);
   };
 
-  const lowStockProducts = products.filter(p => p.quantity <= p.reorderLevel);
-
   return {
-    products, loading, error,
-    refresh: load,
-    lowStockProducts,
-    addProduct, editProduct, removeProduct,
+    products, loading, error, saving,
+    refresh,
+    lowStockProducts: getLowStock(),
+    addProduct: addProductHandler,
+    editProduct,
+    removeProduct,
   };
 }

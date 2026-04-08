@@ -1,28 +1,34 @@
 import { createContext, useContext, useState } from 'react';
 import { StorageUtils } from '../utilities/StorageUtils';
-import { api } from '../utilities/ApiUtils';
 
 const AuthContext = createContext(null);
 
+const MOCK_USERS = [
+  { id: 1, username: 'admin',   password: 'admin123',   role: 'ADMIN' },
+  { id: 2, username: 'manager', password: 'manager123', role: 'MANAGER' },
+  { id: 3, username: 'staff',   password: 'staff123',   role: 'STAFF' },
+];
+
 export function AuthProvider({ children }) {
-  const [user,    setUser]    = useState(null);
-  const [token,   setToken]   = useState(null);
+  const [user,    setUser]    = useState(() => StorageUtils.getUser());
+  const [token,   setToken]   = useState(() => StorageUtils.getToken());
   const [loading, setLoading] = useState(false);
 
   const login = async (username, password) => {
     setLoading(true);
-    try {
-      const data = await api.post('/auth/login', { username, password });
-      StorageUtils.setToken(data.token);
-      StorageUtils.setUser({ username: data.username, role: data.role });
-      setToken(data.token);
-      setUser({ username: data.username, role: data.role });
+    await new Promise(r => setTimeout(r, 700));
+    const found = MOCK_USERS.find(u => u.username === username && u.password === password);
+    setLoading(false);
+    if (found) {
+      const userData  = { id: found.id, username: found.username, role: found.role };
+      const fakeToken = 'mock-token-' + found.username;
+      StorageUtils.setToken(fakeToken);
+      StorageUtils.setUser(userData);
+      setToken(fakeToken);
+      setUser(userData);
       return { success: true };
-    } catch (err) {
-      return { success: false, error: err.message };
-    } finally {
-      setLoading(false);
     }
+    return { success: false, error: 'Invalid credentials' };
   };
 
   const logout = () => {
@@ -38,11 +44,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{
-      user, token, loading,
-      login, logout, hasRole,
-      isAuthenticated: !!token,
-    }}>
+    <AuthContext.Provider value={{ user, token, loading, login, logout, hasRole, isAuthenticated: !!token }}>
       {children}
     </AuthContext.Provider>
   );

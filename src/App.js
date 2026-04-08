@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { InventoryProvider } from './context/InventoryContext.jsx';
-import { ThemeProvider } from './context/ThemeContext';
+import { ThemeProvider } from './context/ThemeContext.js';
 import { ToastProvider } from './context/ToastContext.jsx';
 import { useAuth } from './hooks/useAuth';
 

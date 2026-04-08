@@ -60,7 +60,7 @@ export default function ChartComponent({ data = [], title, height = 200 }) {
       ctx.fillText(d.label.length > 8 ? d.label.slice(0, 8) + '…' : d.label, lx, H - 8);
 
       // Value on top
-      ctx.fillStyle = '#f0f4ff'; ctx.font = 'bold 11px DM Mono, monospace';
+      ctx.fillStyle = '#54509f'; ctx.font = 'bold 11px DM Mono, monospace';
       ctx.fillText(d.value, lx, y - 5);
     });
   }, [data]);
